@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - CaptionAI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-sign-in-alt"></i>
+            <h2>Login to CaptionAI</h2>
+            <p>Welcome back! Please enter your credentials.</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{% url 'register' %}">Sign up here</a></p>
+            <p><a href="{% url 'index' %}"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Video Caption Generator - CaptionAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-preview-container {
+        display: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    #video-preview {
+        width: 100%;
+        max-height: 300px;
+        border-radius: var(--radius);
+        background: #000;
+    }
+    
+    .upload-area {
+        border: 3px dashed #cbd5e1;
+        border-radius: var(--radius);
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 1.5rem;
+    }
+    
+    .upload-area:hover {
+        border-color: var(--primary);
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+    
+    .upload-area i {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+    
+    .upload-area h3 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .upload-area p {
+        color: var(--gray);
+        margin-bottom: 0;
+    }
+    
+    #video-file {
+        display: none;
+    }
+    
+    .file-info {
+        background-color: #f8fafc;
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+        display: none;
+    }
+    
+    .processing-status {
+        background-color: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+        display: none;
+    }
+    
+    .results-section {
+        display: none;
+    }
+    
+    .hashtags-container {
+        margin-top: 1rem;
+    }
+    
+    .hashtag {
+        display: inline-block;
+        background-color: #e0f2fe;
+        color: #0369a1;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        margin: 0.25rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .hashtag:hover {
+        background-color: #bae6fd;
+    }
+    
+    .objects-detected {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--gray);
+    }
+    
+    .object-tag {
+        display: inline-block;
+        background-color: #f1f5f9;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin: 0.125rem;
+        font-size: 0.8rem;
+    }
+
+    .debug-info {
+        background-color: #f8fafc;
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--gray);
+        display: none;
+    }
+    
+    .error-message {
+        background-color: #fee2e2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-bottom: 1rem;
+        border-left: 4px solid #dc2626;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <span>CaptionAI</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="{% url 'generator' %}" class="active"><i class="fas fa-magic"></i> Generator</a></li>
+                    <li><a href="{% url 'history' %}"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="error-message" id="error-message"></div>
+    
+    <div class="generator-container">
+        <section class="input-section">
+            <h2 class="section-title">
+                <i class="fas fa-video"></i>
+                <span>Upload Your Video</span>
+            </h2>
+            
+            <p class="upload-info">Upload a video (max 60 seconds, 100MB) and AI will analyze it to generate the perfect caption.</p>
+            
+            <div class="upload-area" id="upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload Video</h3>
+                <p>Click to upload or drag and drop</p>
+                <p class="upload-requirements">MP4, MOV, AVI, MKV, WEBM, FLV (max 60 seconds, 100MB)</p>
+                <input type="file" id="video-file" name="video_file" accept="video/*">
+            </div>
+            
+            <div class="video-preview-container" id="video-preview-container">
+                <video id="video-preview" controls>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            
+            <div class="file-info" id="file-info">
+                <div class="file-info-content">
+                    <p><strong>File:</strong> <span id="file-name"></span></p>
+                    <p><strong>Size:</strong> <span id="file-size"></span></p>
+                    <p><strong>Duration:</strong> <span id="file-duration"></span></p>
+                </div>
+            </div>
+            
+            <div class="processing-status" id="processing-status">
+                <h4><i class="fas fa-cog fa-spin"></i> Processing Video</h4>
+                <p id="processing-message">AI is analyzing your video. This may take a minute...</p>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">0%</div>
+                </div>
+                <button class="btn btn-small" id="cancel-processing" style="margin-top: 10px; display: none;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+            
+            <form id="caption-form" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="video_id" id="video-id">
+                
+                <div class="form-group">
+                    <label>Select Platform</label>
+                    <div class="platform-options">
+                        {% for value, label in form.platform.field.choices %}
+                        <div class="platform-option {{ value }} {% if value == 'instagram' %}selected{% endif %}" data-platform="{{ value }}">
+                            <i class="fab fa-{{ value }}"></i>
+                            <span class="platform-name">{{ label }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Tone</label>
+                    <div class="tone-options">
+                        {% for value, label in form.tone.field.choices %}
+                        <div class="tone-option {% if value == 'friendly' %}selected{% endif %}" data-tone="{{ value }}">
+                            {{ label }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keywords">Include Keywords/Hashtags (optional)</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-hashtag"></i>
+                        <input type="text" id="keywords" name="keywords" placeholder="E.g., travel, adventure, nature (comma separated)">
+                        <small class="form-text">Leave empty for AI-suggested hashtags</small>
+                    </div>
+                </div>
+                
+                <button type="button" class="generate-btn" id="generate-btn">
+                    <i class="fas fa-magic"></i>
+                    Generate Caption
+                </button>
+                
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>AI is analyzing video and generating caption...</p>
+                </div>
+            </form>
+            
+            <div class="debug-info" id="debug-info"></div>
+        </section>
+        
+        <section class="output-section results-section" id="results-section">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                <span>Generated Results</span>
+            </h2>
+            
+            <div class="video-analysis" id="video-analysis">
+                <h4><i class="fas fa-chart-bar"></i> Video Analysis</h4>
+                <div id="analysis-content">
+                    <p>Analysis will appear here after processing.</p>
+                </div>
+            </div>
+            
+            <div class="caption-output" id="caption-output">
+                <p>Your AI-generated caption will appear here.</p>
+            </div>
+            
+            <div class="hashtags-container" id="hashtags-container" style="display: none;">
+                <h4><i class="fas fa-hashtag"></i> Suggested Hashtags</h4>
+                <div id="hashtags-list"></div>
+                <small>Click on any hashtag to copy it.</small>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn copy-btn" id="copy-btn">
+                    <i class="fas fa-copy"></i>
+                    Copy Caption
+                </button>
+                <button class="action-btn save-btn" id="save-btn">
+                    <i class="fas fa-save"></i>
+                    Save to History
+                </button>
+                <button class="action-btn new-btn" id="new-btn">
+                    <i class="fas fa-plus"></i>
+                    New Video
+                </button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="{% static 'js/generator.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Caption Generator - Home{% endblock %}
+
+{% block content %}
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">
+                <!-- <i class="fas fa-robot"></i> -->
+                <span>AI Caption Generator</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'generator' %}"><i class="fas fa-magic"></i> Generator</a></li>
+                    <li><a href="{% url 'history' %}"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    {% else %}
+                    <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <h1>AI-Powered Caption Generator</h1>
+        <p>Create engaging, platform-optimized captions for your social media posts in seconds. Powered by advanced AI to match your brand voice and tone.</p>
+        
+        {% if user.is_authenticated %}
+        <a href="{% url 'generator' %}" class="btn btn-primary">
+            <i class="fas fa-magic"></i> Start Generating
+        </a>
+        {% else %}
+        <div class="auth-buttons">
+            <a href="{% url 'login' %}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-secondary">
+                <i class="fas fa-user-plus"></i> Sign Up Free
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2>Why Choose CaptionAI?</h2>
+        <div class="features-grid">
+            <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <h3>Fast Generation</h3>
+                <p>Generate multiple caption options in seconds with our advanced AI.</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-share-alt"></i>
+                <h3>Multi-Platform</h3>
+                <p>Optimized for Instagram, Facebook, Twitter, LinkedIn, and TikTok.</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-history"></i>
+                <h3>Save History</h3>
+                <p>Store all your generated captions and access them anytime.</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-user-cog"></i>
+                <h3>Personalized</h3>
+                <p>Customize tone and style to match your brand voice.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
